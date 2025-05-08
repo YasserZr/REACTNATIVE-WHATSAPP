@@ -15,19 +15,17 @@ export default function ListUsers(props) {
 useEffect(() => { 
   ref_listComptes.on("value", (snapshot) => {
     const d = [];
-    snapshot.array.forEach(un_compte => {
-      if (un_compte.val().id != currentUserId);  // Skip the current user
-      d.push(un_compte.val());  // Push each user's data into the array
-    });  // Convert the object to an array
+    snapshot.forEach(un_compte => {
+      if (un_compte.val().id !== currentUserId) {  // Skip the current user (fixed comparison)
+        d.push(un_compte.val());  // Push each user's data into the array
+      }
+    });
     setData(d);  // Update the state with the users data
   });
   return () => {
     ref_listComptes.off();  // Clean up the listener on unmount
    }
 }, []);  // Empty dependency array to run only once on mount
-
-  //ref_listComptes.once
-  
 
   return (
     <ImageBackground

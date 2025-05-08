@@ -1,9 +1,9 @@
-import firebase from 'firebase/compat/app';
-import React, { useState, useEffect } from 'react'; // Removed duplicate useState import
+import firebase from '../config';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
 
 const database = firebase.database();
-const ref_database = firebase.ref();
+const ref_database = database.ref();
 const ref_lesdiscussions = ref_database.child('listes_discussionsGL1');
 
 export default function Chat(props) {
@@ -16,7 +16,21 @@ export default function Chat(props) {
   const ref_Messages = ref_unediscussion.child("Messages");
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
+  const [istyping, setIstyping] = useState(false);
 
+  const ref_istyping = ref_unediscussion.child(secondid+ "isTyping");
+
+  useEffect(() => { 
+    ref_istyping.on("value", (snapshot) => {  
+      const d = snapshot.val();
+      setIstyping(d);
+
+      return () => {
+        ref_istyping.off();  // Clean up the listener on unmount
+      }
+
+
+  })}, []);
   // recuperer la liste des messages
   useEffect(() => {
     const listener = ref_Messages.on('value', (snapshot) => {
@@ -47,6 +61,12 @@ export default function Chat(props) {
       />
       <View style={styles.inputContainer}>
         <TextInput
+          onFocus={() => {
+            const ref_istyping = ref_unediscussion.child("isTyping").set(true);
+          }}
+          onBlur={() => {
+            const ref_istyping = ref_unediscussion.child("isTyping").set(false);
+          }}
           style={styles.input}
           value={msg} // Corrected from message to msg
           onChangeText={setMsg}
@@ -67,6 +87,8 @@ export default function Chat(props) {
     </View>
   );
 }
+
+{istyping && <Text>is typing.... </Text>}
 
 const styles = StyleSheet.create({
   container: {
