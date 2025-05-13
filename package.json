@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~5.0.4",
     "@react-navigation/material-bottom-tabs": "^6.2.29",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/native-stack": "^7.3.12",
@@ -16,14 +17,17 @@
     "expo-status-bar": "~2.2.3",
     "firebase": "^11.7.1",
     "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-gesture-handler": "^2.25.0",
+    "react-native-get-random-values": "^1.11.0",
     "react-native-paper": "^5.14.1",
+    "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
     "react-native-vector-icons": "^10.2.0",
-    "react-dom": "19.0.0",
     "react-native-web": "^0.20.0",
-    "@expo/metro-runtime": "~5.0.4"
+    "rn-emoji-keyboard": "^1.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

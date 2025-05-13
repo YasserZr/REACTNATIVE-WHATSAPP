@@ -1,8 +1,10 @@
 import firebase from '../config';
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
-import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
+import EmojiPicker from 'rn-emoji-keyboard';
+import 'react-native-get-random-values';
 
 const database = firebase.database();
 const ref_database = database.ref();
@@ -26,10 +28,10 @@ export default function Chat(props) {
 
   // idDesc is stable if currentUserId and userId are stable
   const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;
-
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
   const [istyping, setIstyping] = useState(false);
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
   // Effect to reset unread count when chat is focused
   useFocusEffect(
@@ -77,6 +79,15 @@ export default function Chat(props) {
       ref_chat_messages.off('value', listener);
     };
   }, [idDesc]); // Depend on idDesc
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji) => {
+    setMsg((prevMsg) => prevMsg + emoji.emoji);
+  };
+
+  // Toggle emoji picker visibility
+  const toggleEmojiPicker = () => {
+    setIsEmojiPickerVisible(!isEmojiPickerVisible);
+  };
 
   const handleSend = () => {
     if (msg.trim() === '') return;
@@ -172,7 +183,7 @@ export default function Chat(props) {
     <View style={styles.container}>
       {/* Display typing status for the other user */}
       {istyping && <Text style={styles.typingText}>{`User ${userId} is typing...`}</Text>}
-
+      
       <FlatList
         style={styles.flatList}
         data={messages}
@@ -188,10 +199,17 @@ export default function Chat(props) {
             <Text style={styles.timestampText}>
               {formatTimestamp(item.timestamp)}
             </Text>
-          </View>
-        )}
-        inverted // To show latest messages at the bottom
-      />      <View style={styles.inputContainer}>
+          </View>        )}
+        inverted={true} // To show latest messages at the bottom
+      />
+      
+      <View style={styles.inputContainer}>
+        <TouchableOpacity 
+          style={styles.emojiButton} 
+          onPress={toggleEmojiPicker}
+        >
+          <MaterialCommunityIcons name="emoticon-outline" size={24} color="#7B9CFF" />
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           value={msg}
@@ -212,6 +230,23 @@ export default function Chat(props) {
           <MaterialCommunityIcons name="send" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+      
+      {/* Emoji Picker Component */}
+      <EmojiPicker
+        onEmojiSelected={handleEmojiSelect}
+        open={isEmojiPickerVisible}
+        onClose={() => setIsEmojiPickerVisible(false)}
+        theme={{
+          backdrop: 'rgba(0, 0, 0, 0.1)',
+          knob: '#7B9CFF',
+          container: '#F8F9FB',
+          header: '#FFFFFF',
+          skinToneButton: '#7B9CFF',
+        }}
+        categoryPosition="top"
+        enableRecentlyUsed
+        enableSearchBar
+      />
     </View>
   );
 }
@@ -293,8 +328,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },  flatList: {
     flex: 1,
-  },
-  sendButton: {
+  },  sendButton: {
     backgroundColor: '#7B9CFF',
     width: 50,
     height: 50,
@@ -306,5 +340,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+  },
+  emojiButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FB',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#F0F2F5',
   },
 });
