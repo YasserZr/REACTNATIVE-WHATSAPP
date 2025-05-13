@@ -8,30 +8,29 @@ const ref_lesdiscussions = ref_database.child('listes_discussionsGL1');
 
 export default function Chat(props) {
   const currentUserId = props.route.params.currentUserId;
-  const userId = props.route.params.userId; // Get the current user ID from route params
-  
+  const userId = props.route.params.userId;
+
   const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;
   const ref_unediscussion = ref_lesdiscussions.child(idDesc);
-
   const ref_Messages = ref_unediscussion.child("Messages");
+  const ref_istyping = ref_unediscussion.child(`${userId}_isTyping`);
+
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
   const [istyping, setIstyping] = useState(false);
 
-  const ref_istyping = ref_unediscussion.child(secondid+ "isTyping");
+  // Typing listener
+  useEffect(() => {
+    const listener = ref_istyping.on("value", snapshot => {
+      setIstyping(!!snapshot.val()); // Ensure boolean
+    });
 
-  useEffect(() => { 
-    ref_istyping.on("value", (snapshot) => {  
-      const d = snapshot.val();
-      setIstyping(d);
+    return () => {
+      ref_istyping.off("value", listener);
+    };
+  }, []);
 
-      return () => {
-        ref_istyping.off();  // Clean up the listener on unmount
-      }
-
-
-  })}, []);
-  // recuperer la liste des messages
+  // Messages listener
   useEffect(() => {
     const listener = ref_Messages.on('value', (snapshot) => {
       const d = [];
@@ -42,53 +41,54 @@ export default function Chat(props) {
     });
 
     return () => {
-      ref_Messages.off('value', listener); // Proper cleanup
+      ref_Messages.off('value', listener);
     };
   }, []);
 
+  const handleSend = () => {
+    if (msg.trim() === '') return;
+
+    const key = ref_Messages.push().key;
+    const ref_unmsg = ref_Messages.child(key);
+    ref_unmsg.set({
+      body: msg,
+      senderId: currentUserId,
+      receiverId: userId,
+      timestamp: new Date().toISOString(),
+    });
+    setMsg('');
+    ref_unediscussion.child(`${currentUserId}_isTyping`).set(false); // stop typing
+  };
+
   return (
     <View style={styles.container}>
+      {istyping && <Text style={styles.typingText}>User is typing...</Text>}
+
       <FlatList
         style={styles.flatList}
         data={messages}
-        renderItem={({ item }) => {
-          return (
-            <View>
-              <Text>{item.body}</Text>
-            </View>
-          );
-        }}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>{item.body}</Text>
+          </View>
+        )}
       />
+
       <View style={styles.inputContainer}>
         <TextInput
-          onFocus={() => {
-            const ref_istyping = ref_unediscussion.child("isTyping").set(true);
-          }}
-          onBlur={() => {
-            const ref_istyping = ref_unediscussion.child("isTyping").set(false);
-          }}
           style={styles.input}
-          value={msg} // Corrected from message to msg
+          value={msg}
           onChangeText={setMsg}
+          onFocus={() => ref_unediscussion.child(`${currentUserId}_isTyping`).set(true)}
+          onBlur={() => ref_unediscussion.child(`${currentUserId}_isTyping`).set(false)}
           placeholder="Type a message"
         />
-        <Button title="Send" onPress={() => {
-          const key = ref_unediscussion.push().key;
-          const ref_unmsg = ref_Messages.child(key);
-          ref_unmsg.set({
-            body: msg,
-            senderId: currentUserId,
-            recieverId: userId,
-            timestamp: new Date().toLocaleDateString(),
-          });
-          setMsg(''); // Clear input field after sending
-        }} />
+        <Button title="Send" onPress={handleSend} />
       </View>
     </View>
   );
 }
-
-{istyping && <Text>is typing.... </Text>}
 
 const styles = StyleSheet.create({
   container: {
@@ -96,6 +96,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     padding: 10,
     backgroundColor: '#f9f9f9',
+  },
+  typingText: {
+    fontStyle: 'italic',
+    color: 'gray',
+    marginBottom: 5,
   },
   messagesList: {
     flex: 1,
