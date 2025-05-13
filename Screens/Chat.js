@@ -1,6 +1,7 @@
 import firebase from '../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 
 const database = firebase.database();
 const ref_database = database.ref();
@@ -28,6 +29,20 @@ export default function Chat(props) {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
   const [istyping, setIstyping] = useState(false);
+
+  // Effect to reset unread count when chat is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (currentUserId && idDesc) {
+        const unreadCountsRef = ref_lesdiscussions.child(idDesc).child('unreadCounts').child(currentUserId);
+        unreadCountsRef.set(0);
+      }
+      // Optional: Return a cleanup function if needed, though for set(0) it might not be critical
+      return () => {
+        // You could potentially do something when the screen goes out of focus
+      };
+    }, [currentUserId, idDesc])
+  );
 
   // Typing listener
   useEffect(() => {
@@ -65,21 +80,49 @@ export default function Chat(props) {
   const handleSend = () => {
     if (msg.trim() === '') return;
 
-    const ref_unediscussion_send = ref_lesdiscussions.child(idDesc);
-    const ref_chat_messages_send = ref_unediscussion_send.child("Messages");
+    const discussionRef = ref_lesdiscussions.child(idDesc);
+    const messagesRef = discussionRef.child("Messages");
+    const unreadCountsRef = discussionRef.child('unreadCounts');
+    const lastMessageRef = discussionRef.child('lastMessage');
 
-    const messageKey = ref_chat_messages_send.push().key;
-    const ref_unmsg = ref_chat_messages_send.child(messageKey);
-    ref_unmsg.set({
+    const messageKey = messagesRef.push().key;
+    if (!messageKey) {
+      console.error("Failed to get a new message key from Firebase.");
+      return;
+    }
+    const ref_unmsg = messagesRef.child(messageKey);
+    const currentTimestamp = new Date().toISOString();
+
+    const messageData = {
       body: msg,
       senderId: currentUserId,
       receiverId: userId, 
-      timestamp: new Date().toISOString(),
+      timestamp: currentTimestamp,
       // key: messageKey // Firebase key is implicitly the node name, added to object in listener
-    });
-    setMsg('');
-    // When current user sends a message, their typing status should be set to false
-    ref_unediscussion_send.child(`${currentUserId}_isTyping`).set(false);
+    };
+
+    ref_unmsg.set(messageData)
+      .then(() => {
+        setMsg('');
+        // Update last message for the discussion
+        lastMessageRef.set({
+          text: msg,
+          senderId: currentUserId,
+          timestamp: currentTimestamp,
+        });
+
+        // Increment unread count for the receiver using a transaction
+        unreadCountsRef.child(userId).transaction((currentCount) => {
+          return (currentCount || 0) + 1;
+        });
+
+        // When current user sends a message, their typing status should be set to false
+        discussionRef.child(`${currentUserId}_isTyping`).set(false);
+      })
+      .catch(error => {
+        console.error("Error sending message or updating metadata: ", error);
+        // Optionally, inform the user via an alert
+      });
   };
 
   // Helper function to format timestamp into a "time ago" format

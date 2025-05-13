@@ -27,34 +27,47 @@ export default function Forum({ route, navigation }) {
       if (discussionsData) {
         const discussionsArray = Object.keys(discussionsData)
           .map(idDesc => {
-            // Determine the other user's ID
-            // idDesc is a concatenation of two user IDs. We need to find the one that isn't currentUserId.
+            const discussionNode = discussionsData[idDesc]; // Get the whole discussion node
             let otherUserId = null;
+
             if (idDesc.includes(currentUserId)) {
               if (idDesc.startsWith(currentUserId)) {
                 otherUserId = idDesc.substring(currentUserId.length);
               } else if (idDesc.endsWith(currentUserId)) {
                 otherUserId = idDesc.substring(0, idDesc.length - currentUserId.length);
               }
-              // If after splitting, otherUserId is an empty string or same as currentUserId (e.g. idDesc was just currentUserId twice)
-              // This logic might need refinement based on how idDesc is strictly formed, especially for self-chats.
               if (otherUserId === currentUserId || otherUserId === '') {
-                return null; // Or handle self-chats if they are possible and desired
+                return null;
               }
             } else {
-              // This discussion does not involve the current user
               return null;
             }
-            
-            if (!otherUserId) return null; // Skip if otherUserId couldn't be determined
+            if (!otherUserId) return null;
+
+            // Extract last message and unread count
+            const lastMessage = discussionNode.lastMessage || null;
+            const unreadCount = (discussionNode.unreadCounts && discussionNode.unreadCounts[currentUserId]) || 0;
 
             return {
-              id: idDesc, // The unique key for the discussion in Firebase (e.g., user1I Duser2ID)
-              otherUserId: otherUserId, 
-              // You might want to fetch other user's details (name, profile pic) here or later
+              id: idDesc,
+              otherUserId: otherUserId,
+              lastMessage: lastMessage, // Add lastMessage to the discussion object
+              unreadCount: unreadCount, // Add unreadCount for the current user
             };
           })
-          .filter(Boolean); // Remove any null entries from the map (e.g. discussions not involving current user)
+          .filter(Boolean);
+        
+        // Sort discussions: those with unread messages first, then by last message timestamp
+        discussionsArray.sort((a, b) => {
+          if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+          if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+          if (a.lastMessage && b.lastMessage) {
+            return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
+          }
+          if (a.lastMessage) return -1; // Discussions with a last message come before those without
+          if (b.lastMessage) return 1;
+          return 0;
+        });
         
         setDiscussions(discussionsArray);
       } else {
@@ -144,24 +157,35 @@ export default function Forum({ route, navigation }) {
         data={discussions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.discussionRow}> {/* Wrap content and delete button */}
+          <View style={styles.discussionRow}>
             <TouchableOpacity
               style={styles.discussionItem}
               onPress={() => {
-                // Ensure both IDs are present before navigating
                 if (currentUserId && item.otherUserId) {
+                  // When navigating to chat, unread count is reset by Chat.js's useFocusEffect
                   navigation.navigate('Chat', {
                     currentUserId: currentUserId,
-                    userId: item.otherUserId, // In Chat.js, 'userId' is the ID of the other user
+                    userId: item.otherUserId,
                   });
                 } else {
                   console.warn("Navigation to chat aborted: Missing currentUserId or otherUserId.", { currentUserId, otherUserId: item.otherUserId });
-                  // Optionally, show an alert to the user
                 }
               }}
             >
-              {/* Displaying otherUserId. In a real app, you'd fetch and show their name. */}
-              <Text style={styles.discussionText}>Chat with: {item.otherUserId}</Text>
+              <View style={styles.discussionTextContainer}>
+                <Text style={styles.discussionUserText}>Chat with: {item.otherUserId}</Text>
+                {item.lastMessage && (
+                  <Text style={styles.lastMessageText} numberOfLines={1}>
+                    {item.lastMessage.senderId === currentUserId ? 'You: ' : ''}
+                    {item.lastMessage.text}
+                  </Text>
+                )}
+              </View>
+              {item.unreadCount > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadBadgeText}>{item.unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.deleteButton}
@@ -202,13 +226,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, // Add some horizontal padding to the row
   },
   discussionItem: {
-    flex: 1, // Allow text to take available space
-    paddingVertical: 15,
-    paddingHorizontal: 10, // Adjusted padding
+    flex: 1,
+    flexDirection: 'row', // Align text and badge horizontally
+    justifyContent: 'space-between', // Space out text container and badge
+    alignItems: 'center', // Center items vertically
+    paddingVertical: 10, // Reduced vertical padding a bit
+    paddingHorizontal: 10,
   },
-  discussionText: {
-    fontSize: 18, // Larger font for readability
-    color: '#333', // Darker text color
+  discussionTextContainer: { // Container for user text and last message
+    flex: 1, // Take available space
+    marginRight: 10, // Space before unread badge or delete button
+  },
+  discussionUserText: { // Renamed from discussionText for clarity
+    fontSize: 18,
+    color: '#333',
+    fontWeight: 'bold', // Make user ID bold
+  },
+  lastMessageText: { // Style for the last message preview
+    fontSize: 14,
+    color: '#666', // Lighter color for last message
+    marginTop: 2,
+  },
+  unreadBadge: { // Style for the unread messages badge
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 'auto', // Push to the right if no delete button or if delete button is separate
+    paddingHorizontal: 5, // Add some padding if number can be > 9
+  },
+  unreadBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   deleteButton: { // Style for the delete button
     padding: 10,
