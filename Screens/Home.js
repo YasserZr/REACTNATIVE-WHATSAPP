@@ -9,7 +9,16 @@ import Setting from './Home/Setting';
 const Tab = createMaterialBottomTabNavigator();
 
 export default function Home(props) {
-  const currentUserId = props.route.params.currentUserId; // Get the current user ID from route params
+  const currentUserId = props.route?.params?.currentUserId; // Safely get the current user ID
+
+  // Optional: Add a check here if currentUserId is critical for Home screen's basic rendering
+  if (currentUserId === undefined) {
+    console.warn("Home.js: currentUserId is undefined. Ensure it's passed as a route parameter when navigating to the Home screen.");
+    // You could return a loading/error view here if Home cannot function without currentUserId
+    // For example:
+    // return <View><Text>Loading or User ID missing...</Text></View>;
+  }
+
   return (
     <Tab.Navigator
       activeColor="#e91e63"
@@ -25,7 +34,7 @@ export default function Home(props) {
             <MaterialCommunityIcons name="account-group" color={color} size={26} />
           ),
         }}
-        initialParams={{ currentUserId }} // Pass the current user ID to ListUsers
+        initialParams={{ currentUserId }} // Pass the (potentially undefined) current user ID to ListUsers
       />
       <Tab.Screen
         name="Forum"
@@ -47,7 +56,7 @@ export default function Home(props) {
             <MaterialCommunityIcons name="settings" color={color} size={26} />
           ),
         }}
-        initialParams={{ currentUserId }} // Pass the current user ID to Forum
+        initialParams={{ currentUserId }} // Pass the (potentially undefined) current user ID to Setting
       />
     </Tab.Navigator>
   );
