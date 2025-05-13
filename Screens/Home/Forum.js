@@ -203,72 +203,90 @@ export default function Forum({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9', // Light background for the list
+    backgroundColor: '#f4f6fb',
+    paddingTop: 0,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: 'transparent',
   },
   errorText: {
-    color: 'red',
+    color: '#e53935',
     textAlign: 'center',
     fontSize: 16,
+    fontWeight: 'bold',
   },
-  discussionRow: { // New style for the row container
+  discussionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ececec',
-    paddingHorizontal: 10, // Add some horizontal padding to the row
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginVertical: 10,
+    marginHorizontal: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 0,
   },
   discussionItem: {
     flex: 1,
-    flexDirection: 'row', // Align text and badge horizontally
-    justifyContent: 'space-between', // Space out text container and badge
-    alignItems: 'center', // Center items vertically
-    paddingVertical: 10, // Reduced vertical padding a bit
-    paddingHorizontal: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 6,
   },
-  discussionTextContainer: { // Container for user text and last message
-    flex: 1, // Take available space
-    marginRight: 10, // Space before unread badge or delete button
+  discussionTextContainer: {
+    flex: 1,
+    marginRight: 10,
   },
-  discussionUserText: { // Renamed from discussionText for clarity
-    fontSize: 18,
-    color: '#333',
-    fontWeight: 'bold', // Make user ID bold
+  discussionUserText: {
+    fontSize: 20,
+    color: '#1a237e',
+    fontWeight: 'bold',
   },
-  lastMessageText: { // Style for the last message preview
+  lastMessageText: {
     fontSize: 14,
-    color: '#666', // Lighter color for last message
+    color: '#666',
     marginTop: 2,
   },
-  unreadBadge: { // Style for the unread messages badge
-    backgroundColor: 'red',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+  unreadBadge: {
+    backgroundColor: '#5c6bc0',
+    borderRadius: 16,
+    minWidth: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 'auto', // Push to the right if no delete button or if delete button is separate
-    paddingHorizontal: 5, // Add some padding if number can be > 9
+    marginLeft: 'auto',
+    paddingHorizontal: 10,
+    shadowColor: '#5c6bc0',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 4,
   },
   unreadBadgeText: {
     color: 'white',
-    fontSize: 10,
+    fontSize: 15,
     fontWeight: 'bold',
   },
-  deleteButton: { // Style for the delete button
-    padding: 10,
-    // backgroundColor: 'red', // Optional: for better visibility
-    // borderRadius: 5,
+  deleteButton: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#f4f6fb',
+    marginLeft: 8,
   },
-  deleteButtonText: { // Style for the delete button text
-    color: 'red',
-    fontSize: 16,
+  deleteButtonText: {
+    color: '#e53935',
+    fontSize: 17,
+    fontWeight: 'bold',
   },
 });

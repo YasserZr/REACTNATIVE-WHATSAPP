@@ -5,7 +5,6 @@ import {
   TextInput,
   View,
   Button,
-  ImageBackground,
   BackHandler,
   Alert,
 } from "react-native";
@@ -36,9 +35,8 @@ export default function Auth(props) {
   };
 
   return (
-    <ImageBackground
+    <View
       style={styles.container}
-      source={require("../assets/wallpaper.jpg")}
     >
       <View style={styles.formContainer}>
         <Text style={styles.header}>Welcome</Text>
@@ -85,53 +83,76 @@ export default function Auth(props) {
       </View>
 
       <StatusBar style="light" />
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#f4f6fb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 0,
   },
   formContainer: {
-    width: 300,
-    height: 320,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 7,
+    width: 340,
+    minHeight: 380,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 12,
+    padding: 32,
+    marginBottom: 30,
+    borderWidth: 0,
   },
   header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    fontStyle: "italic",
-    color: "darkgray",
-    marginBottom: 10,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1a237e',
+    marginBottom: 24,
+    letterSpacing: 1,
   },
   input: {
-    padding: 10,
-    borderColor: "black",
-    borderWidth: 1,
-    borderRadius: 5,
-    width: 200,
-    margin: 10,
+    padding: 16,
+    borderColor: '#e3e8f0',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    width: 250,
+    margin: 12,
+    backgroundColor: '#f4f6fb',
+    color: '#222',
+    fontSize: 17,
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonContainer: {
-    flexDirection: "row",
-    gap: 15,
+    flexDirection: 'row',
+    gap: 18,
+    marginTop: 18,
+    marginBottom: 12,
   },
   signUpText: {
-    fontWeight: "bold",
-    fontStyle: "italic",
-    color: "black",
-    textAlign: "center",
-    marginTop: 10,
+    fontWeight: 'bold',
+    color: '#5c6bc0',
+    textAlign: 'center',
+    marginTop: 24,
+    fontSize: 16,
+    textDecorationLine: 'underline',
   },
   errorText: {
-    color: "red",
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
+    color: '#e53935',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontSize: 16,
   },
 });

@@ -216,70 +216,79 @@ export default function Chat(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: 'flex-end', // Removed to allow FlatList to take space
     padding: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f4f6fb',
   },
   typingText: {
     fontStyle: 'italic',
-    color: 'gray',
+    color: '#5c6bc0',
     textAlign: 'center',
-    paddingBottom: 5,
+    paddingBottom: 7,
+    fontSize: 16,
+    fontWeight: '600',
   },
-  // messagesList: { // Not used, FlatList has its own style
-  //   flex: 1,
-  //   marginBottom: 10,
-  // },
-  messageBubble: { // Renamed from messageContainer for clarity
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 15,
+  messageBubble: {
+    padding: 16,
+    marginBottom: 14,
+    borderRadius: 24,
     maxWidth: '80%',
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 4,
   },
   currentUserMessage: {
-    backgroundColor: '#DCF8C6', // Light green for current user
+    backgroundColor: '#5c6bc0',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 0,
   },
   otherUserMessage: {
-    backgroundColor: '#E5E5EA', // Light gray for other user
+    backgroundColor: '#fff',
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 0,
   },
   messageText: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: 17,
+    color: '#1a237e',
+    fontWeight: '600',
   },
-  timestampText: { // Style for the timestamp
-    fontSize: 10,
-    color: '#666', // Lighter color for the timestamp
-    alignSelf: 'flex-end', // Align to the right of the bubble
-    marginTop: 4, // Add some space above the timestamp
+  timestampText: {
+    fontSize: 11,
+    color: '#888',
+    alignSelf: 'flex-end',
+    marginTop: 5,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 10,
-    borderTopColor: '#ccc',
+    paddingTop: 12,
+    borderTopColor: '#e3e8f0',
     borderTopWidth: 1,
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    marginBottom: 10,
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 4,
+    paddingHorizontal: 12,
   },
   input: {
     flex: 1,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 20, // Rounded input
-    paddingHorizontal: 15,
-    marginRight: 10,
-    backgroundColor: '#fff',
+    height: 46,
+    borderColor: '#e3e8f0',
+    borderWidth: 1.5,
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    marginRight: 12,
+    backgroundColor: '#f4f6fb',
+    color: '#1a237e',
+    fontSize: 16,
   },
   flatList: {
-    flex: 1, // Allow FlatList to grow
-    // width: '98%', // Not needed if container handles padding
-    // backgroundColor: '#fff', // Background is on container
-    // borderRadius: 10, // Can be removed or kept based on preference
-    // padding: 10, // Padding can be on message bubbles
-    // marginBottom: 10, // Spacing handled by inputContainer's paddingTop
+    flex: 1,
   },
 });

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { FlatList, View, Text, Image, ImageBackground, Linking, Platform, StyleSheet, TouchableHighlight } from "react-native";
+import { FlatList, View, Text, Image, Linking, Platform, StyleSheet, TouchableHighlight } from "react-native";
 import firebase from "../../config"
 import { useEffect } from "react";
 const database = firebase.database();
@@ -35,23 +35,13 @@ useEffect(() => {
    };
 }, [currentUserId]); // Add currentUserId to dependency array
 
-  return (    <ImageBackground
-      source={require("../../assets/wallpaper.jpg")}
-      style={styles.container}
-    >
+  return (    
+    <View style={styles.container}>
       <FlatList
         data={data}
         renderItem={({ item }) => (
           <View
-            style={{
-              flexDirection: "row",
-              borderColor: "white",
-              borderWidth: 2,
-              margin: 5,
-              padding: 5,
-              borderRadius: 5,
-              alignItems: "center",
-            }}
+            style={styles.userCard}
           >
             {/* Navigate to "Chat" when clicking on the profile image */}
             <TouchableHighlight 
@@ -73,7 +63,7 @@ useEffect(() => {
             >
               <Image
                 source={require("../../assets/profile.jpg")}
-                style={{ width: 40, height: 50, marginRight: 10 }}
+                style={styles.avatar}
               />
             </TouchableHighlight>
             
@@ -98,20 +88,48 @@ useEffect(() => {
         )}
         keyExtractor={(item) => item.pseudo}  // Added keyExtractor for better performance
       />
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
-    alignItems: "center", // align horizontally
-    justifyContent: "center", // align vertically
+    backgroundColor: '#f4f6fb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 0,
   },
   text: {
-    color: "white",
-    fontSize: 16,
+    color: '#1a237e',
+    fontSize: 19,
     marginLeft: 10,
+    fontWeight: '600',
+  },
+  userCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginVertical: 10,
+    marginHorizontal: 16,
+    padding: 18,
+    shadowColor: '#1a237e',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 0,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 18,
+    borderWidth: 2,
+    borderColor: '#5c6bc0',
+    backgroundColor: '#e3e8f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
