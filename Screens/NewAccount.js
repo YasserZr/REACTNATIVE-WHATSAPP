@@ -20,7 +20,7 @@ export default function NewAccount(props) {
   return (
     <ImageBackground
       style={styles.container}
-      source={require("../assets/walpaper.jpg")}
+      source={require("../assets/wallpaper.jpg")}
     >
       <View style={styles.authContainer}>
         <Text style={styles.headerText}>Create new Account</Text>

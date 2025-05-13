@@ -45,7 +45,7 @@ export default function Home(props) {
             <MaterialCommunityIcons name="forum" color={color} size={26} />
           ),
         }}
-        
+        initialParams={{ currentUserId }} // Pass the current user ID to Forum
       />
       <Tab.Screen
         name="Settings"

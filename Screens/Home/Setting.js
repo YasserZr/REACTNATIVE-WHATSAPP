@@ -19,7 +19,7 @@ export default function Setting(props) {
   const [numero, setNumero] = useState();
   return (
     <ImageBackground
-      source={require("../../assets/settings.png")}
+      source={require("../../assets/wallpaper.jpg")}
       style={styles.container}
     >
       <Text
@@ -47,7 +47,7 @@ export default function Setting(props) {
         }}
         style={styles.input}
         placeholderTextColor={"white"}
-        placeholder="le pseudo"
+        placeholder="Pseudo"
       ></TextInput>
       <TextInput
         onChangeText={(ch) => {
@@ -55,7 +55,7 @@ export default function Setting(props) {
         }}
         style={styles.input}
         placeholderTextColor={"white"}
-        placeholder="le numero"
+        placeholder="Number"
       ></TextInput>
       <Button onPress={()=>{
         const key=ref_listcomptes.push().key;
@@ -72,7 +72,7 @@ export default function Setting(props) {
           props.navigation.navigate("Auth");
         });
         
-      }} title="Deconnect">
+      }} title="Disconnect">
 
       </Button>
     </ImageBackground>

@@ -36,7 +36,7 @@ useEffect(() => {
 }, [currentUserId]); // Add currentUserId to dependency array
 
   return (    <ImageBackground
-      source={require("../../assets/walpaper.jpg")}
+      source={require("../../assets/wallpaper.jpg")}
       style={styles.container}
     >
       <FlatList
