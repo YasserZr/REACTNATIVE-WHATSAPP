@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   View,
-  Button,
+  TouchableOpacity,
   BackHandler,
   Alert,
 } from "react-native";
@@ -60,16 +60,18 @@ export default function Auth(props) {
         />
 
         <View style={styles.buttonContainer}>
-          <Button
+          <TouchableOpacity
+            style={[styles.button, styles.exitButton]}
             onPress={handleExit}
-            title="Exit"
-            color="#FF7F7F"
-          />
-          <Button
+          >
+            <Text style={styles.buttonText}>Exit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.connectButton]}
             onPress={handleLogin}
-            title="Connect"
-            color="#417cf3"
-          />
+          >
+            <Text style={styles.buttonText}>Connect</Text>
+          </TouchableOpacity>
         </View>
 
         <Text
@@ -90,7 +92,7 @@ export default function Auth(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6fb',
+    backgroundColor: '#F8F9FB',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 0,
@@ -100,59 +102,83 @@ const styles = StyleSheet.create({
     minHeight: 380,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 28,
     backgroundColor: '#fff',
-    shadowColor: '#1a237e',
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 12,
-    padding: 32,
+    shadowOpacity: 0.08,
+    shadowRadius: 28,
+    elevation: 10,
+    padding: 36,
     marginBottom: 30,
     borderWidth: 0,
   },
   header: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#1a237e',
-    marginBottom: 24,
-    letterSpacing: 1,
+    color: '#2E3A59',
+    marginBottom: 28,
+    letterSpacing: 0.5,
   },
   input: {
-    padding: 16,
-    borderColor: '#e3e8f0',
+    padding: 18,
+    borderColor: '#F0F2F5',
     borderWidth: 1.5,
-    borderRadius: 16,
-    width: 250,
+    borderRadius: 18,
+    width: 270,
     margin: 12,
-    backgroundColor: '#f4f6fb',
-    color: '#222',
+    backgroundColor: '#F8F9FB',
+    color: '#2E3A59',
     fontSize: 17,
-    shadowColor: '#1a237e',
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 18,
-    marginTop: 18,
-    marginBottom: 12,
+    gap: 20,
+    marginTop: 24,
+    marginBottom: 16,
   },
   signUpText: {
     fontWeight: 'bold',
-    color: '#5c6bc0',
+    color: '#7B9CFF',
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: 28,
     fontSize: 16,
     textDecorationLine: 'underline',
-  },
-  errorText: {
-    color: '#e53935',
+  },  errorText: {
+    color: '#FF7E87',
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
     fontSize: 16,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7B9CFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    minWidth: 120,
+  },
+  connectButton: {
+    backgroundColor: '#7B9CFF',
+  },
+  exitButton: {
+    backgroundColor: '#FF7E87',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
 });

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native'; // Added Alert
+import { MaterialCommunityIcons } from 'react-native-vector-icons';
+import UserAvatar from '../../components/UserAvatar';
+import EmptyState from '../../components/EmptyState';
 import firebase from '../../config'; // Adjusted path to Firebase config
 
 const database = firebase.database();
@@ -116,85 +119,108 @@ export default function Forum({ route, navigation }) {
       ]
     );
   };
-
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading discussions...</Text>
+        <ActivityIndicator size="large" color="#7B9CFF" />
+        <Text style={styles.loadingText}>Loading discussions...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
+      <EmptyState
+        message={error}
+        icon="alert-circle-outline"
+      />
     );
   }
   
   // Additional check in case useEffect didn't set error but currentUserId is still missing
   if (!currentUserId) { 
     return (
-        <View style={styles.centered}>
-            <Text style={styles.errorText}>User ID not found. Cannot load discussions.</Text>
-        </View>
+      <EmptyState
+        message="User ID not found. Cannot load discussions."
+        icon="account-alert-outline"
+      />
     );
   }
 
   if (discussions.length === 0) {
     return (
-      <View style={styles.centered}>
-        <Text>No discussions found.</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Messages</Text>
+        </View>
+        <EmptyState
+          message="No messages yet. Start chatting with someone from the Users tab!"
+          icon="chat-outline"
+        />
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Messages</Text>
+      </View>
+
       <FlatList
         data={discussions}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.discussionRow}>
-            <TouchableOpacity
-              style={styles.discussionItem}
-              onPress={() => {
-                if (currentUserId && item.otherUserId) {
-                  // When navigating to chat, unread count is reset by Chat.js's useFocusEffect
-                  navigation.navigate('Chat', {
-                    currentUserId: currentUserId,
-                    userId: item.otherUserId,
-                  });
-                } else {
-                  console.warn("Navigation to chat aborted: Missing currentUserId or otherUserId.", { currentUserId, otherUserId: item.otherUserId });
-                }
-              }}
-            >
-              <View style={styles.discussionTextContainer}>
-                <Text style={styles.discussionUserText}>Chat with: {item.otherUserId}</Text>
-                {item.lastMessage && (
-                  <Text style={styles.lastMessageText} numberOfLines={1}>
-                    {item.lastMessage.senderId === currentUserId ? 'You: ' : ''}
-                    {item.lastMessage.text}
-                  </Text>
-                )}
-              </View>
+          <TouchableOpacity
+            style={styles.discussionRow}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (currentUserId && item.otherUserId) {
+                // When navigating to chat, unread count is reset by Chat.js's useFocusEffect
+                navigation.navigate('Chat', {
+                  currentUserId: currentUserId,
+                  userId: item.otherUserId,
+                });
+              } else {
+                console.warn("Navigation to chat aborted: Missing currentUserId or otherUserId.", { currentUserId, otherUserId: item.otherUserId });
+              }
+            }}
+          >
+            <View style={styles.avatarContainer}>
+              <UserAvatar
+                size={50}
+                name={item.otherUserId}
+              />
               {item.unreadCount > 0 && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>{item.unreadCount}</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
+
+            <View style={styles.discussionTextContainer}>
+              <Text style={styles.discussionUserText}>
+                {item.otherUserId && item.otherUserId.length > 15 
+                  ? `${item.otherUserId.substring(0, 15)}...` 
+                  : item.otherUserId || 'Chat'}
+              </Text>
+              {item.lastMessage && (
+                <Text style={styles.lastMessageText} numberOfLines={1}>
+                  {item.lastMessage.senderId === currentUserId ? 'You: ' : ''}
+                  {item.lastMessage.text}
+                </Text>
+              )}
+            </View>
+
             <TouchableOpacity 
               style={styles.deleteButton}
               onPress={() => handleDeleteDiscussion(item.id)}
             >
-              <Text style={styles.deleteButtonText}>Delete</Text>
+              <MaterialCommunityIcons name="delete-outline" size={22} color="#FF7E87" />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -203,90 +229,112 @@ export default function Forum({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6fb',
+    backgroundColor: '#F8F9FB',
     paddingTop: 0,
   },
-  centered: {
+  header: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 8,
+    shadowColor: '#7B9CFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2E3A59',
+    letterSpacing: 0.5,
+  },
+  listContent: {
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+  },  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
     backgroundColor: 'transparent',
   },
+  loadingText: {
+    marginTop: 16,
+    color: '#7B9CFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
   errorText: {
-    color: '#e53935',
+    color: '#FF7E87',
     textAlign: 'center',
     fontSize: 16,
     fontWeight: 'bold',
   },
   discussionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    marginVertical: 10,
-    marginHorizontal: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    shadowColor: '#1a237e',
+    borderRadius: 24,
+    marginVertical: 12,
+    marginHorizontal: 8,
+    padding: 16,
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 5,
     borderWidth: 0,
   },
-  discussionItem: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 12,
   },
   discussionTextContainer: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
   },
   discussionUserText: {
-    fontSize: 20,
-    color: '#1a237e',
+    fontSize: 18,
+    color: '#2E3A59',
     fontWeight: 'bold',
+    marginBottom: 4,
   },
   lastMessageText: {
     fontSize: 14,
-    color: '#666',
+    color: '#8E97A9',
     marginTop: 2,
+    lineHeight: 20,
   },
   unreadBadge: {
-    backgroundColor: '#5c6bc0',
-    borderRadius: 16,
-    minWidth: 32,
-    height: 32,
+    backgroundColor: '#7B9CFF',
+    borderRadius: 14,
+    minWidth: 28,
+    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 'auto',
-    paddingHorizontal: 10,
-    shadowColor: '#5c6bc0',
+    paddingHorizontal: 8,
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.15,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 3,
   },
   unreadBadgeText: {
     color: 'white',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   deleteButton: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#f4f6fb',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FB',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 8,
-  },
-  deleteButtonText: {
-    color: '#e53935',
-    fontSize: 17,
-    fontWeight: 'bold',
   },
 });

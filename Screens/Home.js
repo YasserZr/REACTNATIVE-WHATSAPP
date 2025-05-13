@@ -21,9 +21,9 @@ export default function Home(props) {
 
   return (
     <Tab.Navigator
-      activeColor="#e91e63"
-      inactiveColor="#3e2465"
-      barStyle={{ backgroundColor: '#694fad' }} // Customize the bottom tab bar color
+      activeColor="#7B9CFF"
+      inactiveColor="#8E97A9"
+      barStyle={{ backgroundColor: '#FFFFFF', elevation: 8, shadowColor: '#7B9CFF', shadowOpacity: 0.1, shadowOffset: { width: 0, height: -2 }, shadowRadius: 10 }} // Updated to modern style
     >
       <Tab.Screen
         name="Users"

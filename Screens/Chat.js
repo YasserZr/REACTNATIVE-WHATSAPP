@@ -1,7 +1,8 @@
 import firebase from '../config';
 import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
-import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
+import { MaterialCommunityIcons } from 'react-native-vector-icons';
 
 const database = firebase.database();
 const ref_database = database.ref();
@@ -190,9 +191,7 @@ export default function Chat(props) {
           </View>
         )}
         inverted // To show latest messages at the bottom
-      />
-
-      <View style={styles.inputContainer}>
+      />      <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           value={msg}
@@ -202,12 +201,16 @@ export default function Chat(props) {
             const ref_unediscussion_typing_current = ref_lesdiscussions.child(idDesc);
             ref_unediscussion_typing_current.child(`${currentUserId}_isTyping`).set(text.length > 0);
           }}
-          // onFocus and onBlur might be redundant if onChangeText handles typing status
-          // onFocus={() => ref_unediscussion.child(`${currentUserId}_isTyping`).set(true)}
-          // onBlur={() => ref_unediscussion.child(`${currentUserId}_isTyping`).set(false)}
           placeholder="Type a message"
+          placeholderTextColor="#8E97A9"
         />
-        <Button title="Send" onPress={handleSend} />
+        <TouchableOpacity 
+          style={styles.sendButton} 
+          onPress={handleSend}
+          disabled={!msg.trim()}
+        >
+          <MaterialCommunityIcons name="send" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -216,30 +219,30 @@ export default function Chat(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#f4f6fb',
+    padding: 14,
+    backgroundColor: '#F8F9FB',
   },
   typingText: {
     fontStyle: 'italic',
-    color: '#5c6bc0',
+    color: '#7B9CFF',
     textAlign: 'center',
-    paddingBottom: 7,
+    paddingBottom: 10,
     fontSize: 16,
     fontWeight: '600',
   },
   messageBubble: {
-    padding: 16,
-    marginBottom: 14,
-    borderRadius: 24,
+    padding: 18,
+    marginBottom: 16,
+    borderRadius: 26,
     maxWidth: '80%',
-    shadowColor: '#1a237e',
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.10,
-    shadowRadius: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 4,
   },
   currentUserMessage: {
-    backgroundColor: '#5c6bc0',
+    backgroundColor: '#7B9CFF',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 0,
   },
@@ -247,48 +250,61 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 0,
-  },
-  messageText: {
+  },  messageText: {
     fontSize: 17,
-    color: '#1a237e',
+    color: '#2E3A59',
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
   timestampText: {
     fontSize: 11,
-    color: '#888',
+    color: '#8E97A9',
     alignSelf: 'flex-end',
-    marginTop: 5,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    borderTopColor: '#e3e8f0',
+    paddingTop: 14,
+    borderTopColor: '#F0F2F5',
     borderTopWidth: 1,
     backgroundColor: '#fff',
-    borderRadius: 22,
+    borderRadius: 24,
     marginBottom: 10,
-    shadowColor: '#1a237e',
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.10,
-    shadowRadius: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   input: {
     flex: 1,
-    height: 46,
-    borderColor: '#e3e8f0',
+    height: 50,
+    borderColor: '#F0F2F5',
     borderWidth: 1.5,
-    borderRadius: 22,
+    borderRadius: 24,
     paddingHorizontal: 18,
     marginRight: 12,
-    backgroundColor: '#f4f6fb',
-    color: '#1a237e',
+    backgroundColor: '#F8F9FB',
+    color: '#2E3A59',
     fontSize: 16,
-  },
-  flatList: {
+  },  flatList: {
     flex: 1,
+  },
+  sendButton: {
+    backgroundColor: '#7B9CFF',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7B9CFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
 });

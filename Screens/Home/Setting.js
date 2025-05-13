@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   View,
+  TouchableOpacity
 } from "react-native";
 import firebase from "../../config/index";
 const auth = firebase.auth();
@@ -22,8 +23,8 @@ export default function Setting(props) {
       <View style={styles.card}>
         <Text
           style={{
-            fontSize: 32,
-            color: "#11A",
+            fontSize: 36,
+            color: "#2E3A59",
             fontWeight: "bold",
           }}
         >
@@ -32,41 +33,48 @@ export default function Setting(props) {
         <Image
           source={require("../../assets/profile.jpg")}
           style={styles.profileImage}
-        ></Image>
+        />
         <TextInput
           onChangeText={(ch) => {
             setPseudo(ch);
           }}
           style={styles.input}
-          placeholderTextColor={"#888"}
+          placeholderTextColor={"#8E97A9"}
           placeholder="Pseudo"
-        ></TextInput>
+        />
         <TextInput
           onChangeText={(ch) => {
             setNumero(ch);
           }}
           style={styles.input}
-          placeholderTextColor={"#888"}
+          placeholderTextColor={"#8E97A9"}
           placeholder="Number"
-        ></TextInput>
-        <Button onPress={()=>{
-          const key=ref_listcomptes.push().key;
-          const ref_uncompte=ref_listcomptes.child(currentUserId);
-          ref_uncompte.set({
-            id: currentUserId,
-            //image: require("../../assets/profile.jpg"),
-            pseudo,
-            numero
-          })
-        }} title="save"></Button>
-        <Button onPress={() => {
-          auth.signOut().then(() => {
-            props.navigation.navigate("Auth");
-          });
-          
-        }} title="Disconnect">
+        />        <TouchableOpacity 
+          style={[styles.button, styles.saveButton]}
+          onPress={()=>{
+            const key=ref_listcomptes.push().key;
+            const ref_uncompte=ref_listcomptes.child(currentUserId);
+            ref_uncompte.set({
+              id: currentUserId,
+              //image: require("../../assets/profile.jpg"),
+              pseudo,
+              numero
+            })
+          }} 
+        >
+          <Text style={styles.buttonText}>Save Profile</Text>
+        </TouchableOpacity>
 
-        </Button>
+        <TouchableOpacity 
+          style={[styles.button, styles.disconnectButton]} 
+          onPress={() => {
+            auth.signOut().then(() => {
+              props.navigation.navigate("Auth");
+            });
+          }}
+        >
+          <Text style={styles.buttonText}>Disconnect</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -74,52 +82,80 @@ export default function Setting(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6fb',
+    backgroundColor: '#F8F9FB',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 0,
   },
   input: {
-    color: '#222',
+    color: '#2E3A59',
     borderWidth: 1.5,
-    borderColor: '#e3e8f0',
-    height: 52,
-    width: '90%',
-    backgroundColor: '#f4f6fb',
-    marginBottom: 18,
-    borderRadius: 16,
+    borderColor: '#F0F2F5',
+    height: 55,
+    width: '92%',
+    backgroundColor: '#F8F9FB',
+    marginBottom: 20,
+    borderRadius: 18,
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '500',
-    shadowColor: '#1a237e',
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
+  },
+  button: {
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 24,
+    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7B9CFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    width: '90%',
+  },
+  saveButton: {
+    backgroundColor: '#7B9CFF',
+    marginTop: 20,
+  },
+  disconnectButton: {
+    backgroundColor: '#FF7E87',
+    marginTop: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 17,
+    letterSpacing: 0.5,
   },
   profileImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 4,
-    borderColor: '#5c6bc0',
-    marginBottom: 30,
-    shadowColor: '#1a237e',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 5,
+    borderColor: '#7B9CFF',
+    marginBottom: 36,
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
-    backgroundColor: '#e3e8f0',
+    backgroundColor: '#F0F2F5',
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    shadowColor: '#1a237e',
+    borderRadius: 28,
+    padding: 36,
+    shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOpacity: 0.08,
+    shadowRadius: 28,
+    elevation: 10,
     alignItems: 'center',
     width: '92%',
     marginBottom: 30,
