@@ -3,14 +3,15 @@ import 'firebase/compat/auth';
 import 'firebase/compat/database';
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDq7H8X50167px-f8PrqJFREjvxBHlcCeM",
-  authDomain: "whatsapp-16104.firebaseapp.com",
-  projectId: "whatsapp-16104",
-  storageBucket: "whatsapp-16104.firebasestorage.app",
-  messagingSenderId: "852617647337",
-  appId: "1:852617647337:web:7636cf22f725388101cc78",
-  measurementId: "G-5822RPQP8P"
+  apiKey: "AIzaSyBUhdGVtK5gcbsn_3dySxg0CpEPAHT9f10",
+  authDomain: "whats-app-ca882.firebaseapp.com",
+  projectId: "whats-app-ca882",
+  storageBucket: "whats-app-ca882.firebasestorage.app",
+  messagingSenderId: "1078795949043",
+  appId: "1:1078795949043:web:9def7f7739d6323df63886",
+  measurementId: "G-KHTXLNTQ40"
 };
 
 // Initialize Firebase
