@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   ScrollView
 } from "react-native";
+import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import firebase from "../../config/index";
 import { supabase } from "../../config/supabase";
 import * as ImagePicker from 'expo-image-picker';
@@ -381,10 +382,9 @@ export default function Setting(props) {
           {uploading ? (
             <View style={styles.uploadingOverlay}>
               <ActivityIndicator size="large" color="#FFFFFF" />
-            </View>
-          ) : (
+            </View>          ) : (
             <View style={styles.cameraIconContainer}>
-              <Text style={styles.cameraIcon}>📸</Text>
+              <MaterialCommunityIcons name="camera" size={20} color="#FFFFFF" />
             </View>
           )}
         </TouchableOpacity>
