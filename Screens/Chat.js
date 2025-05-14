@@ -1,6 +1,6 @@
 import firebase from '../config';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Modal, Alert, ImageBackground } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard';
@@ -34,6 +34,7 @@ export default function Chat(props) {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [userPseudo, setUserPseudo] = useState(props.route?.params?.userPseudo || userId);
   const [currentUserPseudo, setCurrentUserPseudo] = useState("");
+  const [chatBackgroundUri, setChatBackgroundUri] = useState(null);
   
   // Add states for message editing and menu visibility
   const [editingMessage, setEditingMessage] = useState(null);
@@ -47,9 +48,9 @@ export default function Chat(props) {
         const unreadCountsRef = ref_lesdiscussions.child(idDesc).child('unreadCounts').child(currentUserId);
         unreadCountsRef.set(0);
       }
-      // Optional: Return a cleanup function if needed, though for set(0) it might not be critical
+      
       return () => {
-        // You could potentially do something when the screen goes out of focus
+        
       };
     }, [currentUserId, idDesc])
   );
@@ -92,6 +93,19 @@ export default function Chat(props) {
       ref_listComptes.child(currentUserId).off('value', currentUserListener);
     };
   }, [userId, currentUserId]);
+
+  // listen to background changes
+  useEffect(() => {
+    if (!idDesc) return;
+
+    const backgroundRef = ref_lesdiscussions.child(idDesc).child('backgroundimageURL');
+    const listener = backgroundRef.on('value', (snapshot) => {
+      const uri = snapshot.val();
+      setChatBackgroundUri(uri);
+    });
+
+    return () => backgroundRef.off('value', listener);
+  }, [idDesc]);
 
   // Messages listener
   useEffect(() => {
@@ -317,11 +331,15 @@ export default function Chat(props) {
   }, [messages]);
 
   return (
-    <View style={styles.container}>
-      {/* Display typing status for the other user */}
+    <ImageBackground 
+      source={chatBackgroundUri ? { uri: chatBackgroundUri } : null} 
+      style={styles.container}
+      imageStyle={styles.backgroundImageStyle}
+    >
+      
       {istyping && <Text style={styles.typingText}>{`${userPseudo} is typing...`}</Text>}
       
-      {/* Display editing mode indicator */}
+      
       {editingMessage && (
         <View style={styles.editingContainer}>
           <Text style={styles.editingText}>Editing message</Text>
@@ -482,15 +500,23 @@ export default function Chat(props) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 14,
-    backgroundColor: '#F8F9FB',
+    // backgroundColor is now handled by ImageBackground or default if no image
+  },
+  backgroundImageStyle: {
+    // opacity: 0.5, // Example: if you want to make the background image semi-transparent
+    // resizeMode: 'cover', // Or 'stretch', 'contain'
+  },
+  overlayContainer: { // New style to ensure content is layered correctly over the background
+    flex: 1,
+    backgroundColor: 'transparent', // Make sure this container is transparent
+    padding: 14, // Moved padding here from the main container
   },
   messagesContent: {
     paddingBottom: 10,

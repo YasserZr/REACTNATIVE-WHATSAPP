@@ -147,6 +147,20 @@ useEffect(() => {
               >
                 <MaterialCommunityIcons name="chat" size={22} color="#7B9CFF" />
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => {
+                  if (currentUserId && item.id) {
+                    props.navigation.navigate("SendSms", { 
+                      currentUserId: currentUserId, 
+                      userId: item.id
+                    });
+                  }
+                }}
+              >
+                <MaterialCommunityIcons name="sms" size={22} color="#7B9CFF" />
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         )}

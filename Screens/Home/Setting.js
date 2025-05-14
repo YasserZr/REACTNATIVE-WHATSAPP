@@ -33,6 +33,7 @@ export default function Setting(props) {
   const currentUserId = props.route.params.currentUserId; // Get the current user ID from route params
   const [pseudo, setPseudo] = useState("");
   const [numero, setNumero] = useState();
+  const [email, setEmail] = useState(currentUserId.email);
   const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   
@@ -52,6 +53,7 @@ export default function Setting(props) {
       if (userData) {
         setPseudo(userData.pseudo || "");
         setNumero(userData.numero || "");
+        setEmail(userData.email || "");
         if (userData.profileImageUrl) {
           setProfileImage(userData.profileImageUrl);
         }
@@ -390,7 +392,21 @@ export default function Setting(props) {
         </TouchableOpacity>
         <TextInput
           onChangeText={(ch) => {
-            setPseudo(ch);
+            setEmail(ch);
+          }}
+          style={styles.input}
+          placeholderTextColor={"#8E97A9"}
+          placeholder="Email"
+          value={email}
+        />
+        <TextInput
+          onChangeText={(ch) => {
+            if (ch.length > 3) {
+              setPseudo(ch);
+            } else {
+              Alert.alert("Pseudo must be at least 3 characters long");
+            }
+            
           }}
           style={styles.input}
           placeholderTextColor={"#8E97A9"}
@@ -415,6 +431,7 @@ export default function Setting(props) {
                 id: currentUserId,
                 pseudo,
                 numero,
+                email,
                 profileImageUrl: profileImage
               });
               Alert.alert('Success', 'Profile updated successfully!');
