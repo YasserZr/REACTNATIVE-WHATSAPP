@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard';
 import 'react-native-get-random-values';
+import UserAvatar from '../components/UserAvatar';
 
 const database = firebase.database();
 const ref_database = database.ref();
@@ -27,11 +28,12 @@ export default function Chat(props) {
   }
 
   // idDesc is stable if currentUserId and userId are stable
-  const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;
-  const [messages, setMessages] = useState([]);
+  const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;  const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
   const [istyping, setIstyping] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
+  const [userPseudo, setUserPseudo] = useState(props.route?.params?.userPseudo || userId);
+  const [currentUserPseudo, setCurrentUserPseudo] = useState("");
 
   // Effect to reset unread count when chat is focused
   useFocusEffect(
@@ -60,6 +62,31 @@ export default function Chat(props) {
       ref_user_istyping.off("value", listener);
     };
   }, [idDesc, userId]); // Depend on idDesc and userId
+  // Fetch user pseudo names
+  useEffect(() => {
+    const ref_listComptes = firebase.database().ref("ListComptes");
+    
+    // Get user pseudo
+    const userListener = ref_listComptes.child(userId).on('value', (snapshot) => {
+      const userData = snapshot.val();
+      if (userData && userData.pseudo) {
+        setUserPseudo(userData.pseudo);
+      }
+    });
+    
+    // Get current user pseudo
+    const currentUserListener = ref_listComptes.child(currentUserId).on('value', (snapshot) => {
+      const currentUserData = snapshot.val();
+      if (currentUserData && currentUserData.pseudo) {
+        setCurrentUserPseudo(currentUserData.pseudo);
+      }
+    });
+    
+    return () => {
+      ref_listComptes.child(userId).off('value', userListener);
+      ref_listComptes.child(currentUserId).off('value', currentUserListener);
+    };
+  }, [userId, currentUserId]);
 
   // Messages listener
   useEffect(() => {
@@ -182,24 +209,59 @@ export default function Chat(props) {
   return (
     <View style={styles.container}>
       {/* Display typing status for the other user */}
-      {istyping && <Text style={styles.typingText}>{`User ${userId} is typing...`}</Text>}
-      
-      <FlatList
+      {istyping && <Text style={styles.typingText}>{`${userPseudo} is typing...`}</Text>}
+        <FlatList
         style={styles.flatList}
         data={messages}
-        keyExtractor={(item) => item.key} // Use the unique Firebase key for each message
-        renderItem={({ item }) => (
-          <View 
-            style={[
-              styles.messageBubble,
-              item.senderId === currentUserId ? styles.currentUserMessage : styles.otherUserMessage
-            ]}
-          >
-            <Text style={styles.messageText}>{item.body}</Text>
-            <Text style={styles.timestampText}>
-              {formatTimestamp(item.timestamp)}
-            </Text>
-          </View>        )}
+        keyExtractor={(item) => item.key}        renderItem={({ item }) => {
+          const isCurrentUser = item.senderId === currentUserId;
+          return (
+            <View style={[
+              styles.messageRow,
+              isCurrentUser ? styles.currentUserRow : styles.otherUserRow
+            ]}>
+              {!isCurrentUser && (
+                <View style={styles.avatarContainer}>
+                  <UserAvatar
+                    size={36}
+                    name={userPseudo}
+                    source={require("../assets/profile.jpg")}
+                  />
+                </View>
+              )}
+              
+              <View 
+                style={[
+                  styles.messageBubble,
+                  isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
+                ]}
+              >
+                <Text style={[
+                  styles.messageText,
+                  isCurrentUser ? styles.currentUserText : styles.otherUserText
+                ]}>
+                  {item.body}
+                </Text>
+                <Text style={[
+                  styles.timestampText,
+                  isCurrentUser ? styles.currentUserTimestamp : styles.otherUserTimestamp
+                ]}>
+                  {formatTimestamp(item.timestamp)}
+                </Text>
+              </View>
+              
+              {isCurrentUser && (
+                <View style={styles.avatarContainer}>
+                  <UserAvatar
+                    size={36}
+                    name={currentUserPseudo}
+                    source={require("../assets/profile.jpg")}
+                  />
+                </View>
+              )}
+            </View>
+          );
+        }}
         inverted={true} // To show latest messages at the bottom
       />
       
@@ -264,12 +326,28 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     fontSize: 16,
     fontWeight: '600',
+  },  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginVertical: 8,
+    paddingHorizontal: 6,
+    width: '100%',
+  },
+  currentUserRow: {
+    justifyContent: 'flex-end',
+  },
+  otherUserRow: {
+    justifyContent: 'flex-start',
+  },
+  avatarContainer: {
+    marginHorizontal: 8,
+    alignSelf: 'flex-end',
   },
   messageBubble: {
     padding: 18,
-    marginBottom: 16,
+    marginBottom: 6,
     borderRadius: 26,
-    maxWidth: '80%',
+    maxWidth: '70%',
     shadowColor: '#7B9CFF',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
@@ -278,25 +356,34 @@ const styles = StyleSheet.create({
   },
   currentUserMessage: {
     backgroundColor: '#7B9CFF',
-    alignSelf: 'flex-end',
     borderBottomRightRadius: 0,
   },
   otherUserMessage: {
     backgroundColor: '#fff',
-    alignSelf: 'flex-start',
     borderBottomLeftRadius: 0,
-  },  messageText: {
+  },
+  messageText: {
     fontSize: 17,
-    color: '#2E3A59',
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  timestampText: {
+  currentUserText: {
+    color: '#FFFFFF',
+  },
+  otherUserText: {
+    color: '#2E3A59',
+  },  timestampText: {
     fontSize: 11,
-    color: '#8E97A9',
-    alignSelf: 'flex-end',
     marginTop: 6,
     fontStyle: 'italic',
+  },
+  currentUserTimestamp: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    alignSelf: 'flex-end',
+  },
+  otherUserTimestamp: {
+    color: '#8E97A9',
+    alignSelf: 'flex-end',
   },
   inputContainer: {
     flexDirection: 'row',
