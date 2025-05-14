@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import UserAvatar from "../../components/UserAvatar";
 import EmptyState from '../../components/EmptyState';
 import { useEffect } from "react";
+import { useMultipleUsersData } from "../../utils/userDataListener";
 const database = firebase.database();
 const ref_database = database.ref();
 const ref_listComptes = ref_database.child("ListComptes");  // Reference to the "users" node in the database
@@ -15,7 +16,6 @@ export default function ListUsers(props) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   // recuperer les données
 useEffect(() => {
   if (currentUserId === undefined) {
@@ -48,7 +48,7 @@ useEffect(() => {
   return () => {
     ref_listComptes.off("value", listener);  // Clean up the specific listener
    };
-}, [currentUserId]); // Add currentUserId to dependency array  // Show loading state
+}, [currentUserId]); // Add currentUserId to dependency array// Show loading state
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -107,9 +107,9 @@ useEffect(() => {
                 console.error("ListUsers.js: Cannot navigate to Chat. Missing currentUserId or item.id.");
               }
             }}
-          >
-            <UserAvatar 
-              source={require("../../assets/profile.jpg")}
+          >            <UserAvatar 
+              source={item.profileImageUrl || null}
+              userId={item.id}
               name={item.pseudo}
               size={65}
             />

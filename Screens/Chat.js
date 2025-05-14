@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard';
 import 'react-native-get-random-values';
 import UserAvatar from '../components/UserAvatar';
+import { useUserData } from '../utils/userDataListener';
 
 const database = firebase.database();
 const ref_database = database.ref();
@@ -221,11 +222,10 @@ export default function Chat(props) {
               isCurrentUser ? styles.currentUserRow : styles.otherUserRow
             ]}>
               {!isCurrentUser && (
-                <View style={styles.avatarContainer}>
-                  <UserAvatar
+                <View style={styles.avatarContainer}>                  <UserAvatar
                     size={36}
                     name={userPseudo}
-                    source={require("../assets/profile.jpg")}
+                    userId={userId}
                   />
                 </View>
               )}
@@ -251,11 +251,10 @@ export default function Chat(props) {
               </View>
               
               {isCurrentUser && (
-                <View style={styles.avatarContainer}>
-                  <UserAvatar
+                <View style={styles.avatarContainer}>                  <UserAvatar
                     size={36}
                     name={currentUserPseudo}
-                    source={require("../assets/profile.jpg")}
+                    userId={currentUserId}
                   />
                 </View>
               )}

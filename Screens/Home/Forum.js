@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import UserAvatar from '../../components/UserAvatar';
 import EmptyState from '../../components/EmptyState';
 import firebase from '../../config'; // Adjusted path to Firebase config
+import { useUserData } from '../../utils/userDataListener';
 
 const database = firebase.database();
 const ref_lesdiscussions = database.ref('listes_discussionsGL1');
@@ -186,10 +187,10 @@ export default function Forum({ route, navigation }) {
               }
             }}
           >
-            <View style={styles.avatarContainer}>
-              <UserAvatar
+            <View style={styles.avatarContainer}>              <UserAvatar
                 size={50}
                 name={item.otherUserId}
+                userId={item.otherUserId}
               />
               {item.unreadCount > 0 && (
                 <View style={styles.unreadBadge}>

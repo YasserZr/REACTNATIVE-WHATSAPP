@@ -21,6 +21,7 @@ import { resizeImageIfNeeded, getBase64FromUri } from "../../utils/imageUtils";
 import { runSupabaseTest } from "../../utils/supabaseUtils";
 import { ensureNetworkConnection } from "../../utils/networkUtils";
 import { showSupabaseConfigGuide } from "../../utils/supabaseConfigHelper";
+import { refreshUserData, useUserData } from "../../utils/userDataListener";
 
 const auth = firebase.auth();
 const database = firebase.database();
@@ -327,8 +328,13 @@ export default function Setting(props) {
     try {
       const ref_uncompte = ref_listcomptes.child(currentUserId);
       await ref_uncompte.update({
-        profileImageUrl: imageUrl
+        profileImageUrl: imageUrl,
+        lastUpdated: firebase.database.ServerValue.TIMESTAMP
       });
+      
+      // Trigger refresh for real-time listeners in other components
+      await refreshUserData(currentUserId);
+      console.log('Profile image updated and refresh triggered');
     } catch (error) {
       console.error('Error updating profile in Firebase:', error);
       throw error;
