@@ -1,6 +1,6 @@
 import firebase from '../config';
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard';
@@ -29,12 +29,16 @@ export default function Chat(props) {
   }
 
   // idDesc is stable if currentUserId and userId are stable
-  const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;  const [messages, setMessages] = useState([]);
-  const [msg, setMsg] = useState('');
+  const idDesc = currentUserId > userId ? currentUserId + userId : userId + currentUserId;  const [messages, setMessages] = useState([]);  const [msg, setMsg] = useState('');
   const [istyping, setIstyping] = useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [userPseudo, setUserPseudo] = useState(props.route?.params?.userPseudo || userId);
   const [currentUserPseudo, setCurrentUserPseudo] = useState("");
+  
+  // Add states for message editing and menu visibility
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [messageMenuVisible, setMessageMenuVisible] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Effect to reset unread count when chat is focused
   useFocusEffect(
@@ -116,6 +120,63 @@ export default function Chat(props) {
   const toggleEmojiPicker = () => {
     setIsEmojiPickerVisible(!isEmojiPickerVisible);
   };
+  // Handle message options (edit/delete menu)
+  const handleMessageOptions = (message) => {
+    setSelectedMessage(message);
+    setMessageMenuVisible(true);
+  };
+  
+  // Start editing a message
+  const startEditingMessage = () => {
+    if (selectedMessage) {
+      setEditingMessage(selectedMessage);
+      setMsg(selectedMessage.body);
+      setMessageMenuVisible(false);
+      // Scroll to the input field
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  };
+  
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingMessage(null);
+    setMsg('');
+  };
+  
+  // Delete a message
+  const deleteMessage = () => {
+    if (selectedMessage && selectedMessage.key) {
+      Alert.alert(
+        "Delete Message",
+        "Are you sure you want to delete this message?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Delete", 
+            style: "destructive",
+            onPress: () => {
+              const discussionRef = ref_lesdiscussions.child(idDesc);
+              const messageRef = discussionRef.child("Messages").child(selectedMessage.key);
+              
+              messageRef.remove()
+                .then(() => {
+                  console.log("Message deleted successfully");
+                  setMessageMenuVisible(false);
+                })
+                .catch((error) => {
+                  console.error("Error deleting message:", error);
+                  Alert.alert("Error", "Failed to delete the message. Please try again.");
+                });
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  const inputRef = useRef(null);
 
   const handleSend = () => {
     if (msg.trim() === '') return;
@@ -124,15 +185,51 @@ export default function Chat(props) {
     const messagesRef = discussionRef.child("Messages");
     const unreadCountsRef = discussionRef.child('unreadCounts');
     const lastMessageRef = discussionRef.child('lastMessage');
+    
+    const currentTimestamp = new Date().toISOString();
 
+    // If we're editing a message
+    if (editingMessage) {
+      const ref_unmsg = messagesRef.child(editingMessage.key);
+      
+      ref_unmsg.update({
+        body: msg,
+        edited: true,
+        editTimestamp: currentTimestamp,
+      })
+        .then(() => {
+          setMsg('');
+          setEditingMessage(null);
+          
+          // Update last message if this was the last message
+          const latestMessages = [...messages].sort((a, b) => 
+            new Date(b.timestamp) - new Date(a.timestamp)
+          );
+          
+          if (latestMessages.length > 0 && latestMessages[0].key === editingMessage.key) {
+            lastMessageRef.update({
+              text: msg,
+              edited: true,
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Error updating message: ", error);
+          Alert.alert("Error", "Failed to update the message. Please try again.");
+        });
+      
+      return;
+    }
+    
+    // Otherwise send a new message
     const messageKey = messagesRef.push().key;
     if (!messageKey) {
       console.error("Failed to get a new message key from Firebase.");
       return;
     }
+    
     const ref_unmsg = messagesRef.child(messageKey);
-    const currentTimestamp = new Date().toISOString();
-
+    
     const messageData = {
       body: msg,
       senderId: currentUserId,
@@ -161,7 +258,7 @@ export default function Chat(props) {
       })
       .catch(error => {
         console.error("Error sending message or updating metadata: ", error);
-        // Optionally, inform the user via an alert
+        Alert.alert("Error", "Failed to send the message. Please try again.");
       });
   };
 
@@ -206,15 +303,39 @@ export default function Chat(props) {
       return '';
     }
   };
+  // Update flatlist reference to scroll to bottom when messages change
+  const flatListRef = useRef(null);
+  
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (flatListRef.current && messages.length > 0 && !editingMessage) {
+      // Add a small delay to ensure the FlatList has updated
+      setTimeout(() => {
+        flatListRef.current.scrollToEnd({ animated: true });
+      }, 200);
+    }
+  }, [messages]);
 
   return (
     <View style={styles.container}>
       {/* Display typing status for the other user */}
       {istyping && <Text style={styles.typingText}>{`${userPseudo} is typing...`}</Text>}
+      
+      {/* Display editing mode indicator */}
+      {editingMessage && (
+        <View style={styles.editingContainer}>
+          <Text style={styles.editingText}>Editing message</Text>
+          <TouchableOpacity onPress={cancelEditing} style={styles.cancelEditButton}>
+            <MaterialCommunityIcons name="close" size={20} color="#FF7E87" />
+          </TouchableOpacity>
+        </View>
+      )}
         <FlatList
+        ref={flatListRef}
         style={styles.flatList}
-        data={messages}
-        keyExtractor={(item) => item.key}        renderItem={({ item }) => {
+        data={messages}        keyExtractor={(item) => item.key}
+        contentContainerStyle={styles.messagesContent} // Add this for proper padding
+        renderItem={({ item }) => {
           const isCurrentUser = item.senderId === currentUserId;
           return (
             <View style={[
@@ -222,7 +343,8 @@ export default function Chat(props) {
               isCurrentUser ? styles.currentUserRow : styles.otherUserRow
             ]}>
               {!isCurrentUser && (
-                <View style={styles.avatarContainer}>                  <UserAvatar
+                <View style={styles.avatarContainer}>
+                  <UserAvatar
                     size={36}
                     name={userPseudo}
                     userId={userId}
@@ -230,28 +352,49 @@ export default function Chat(props) {
                 </View>
               )}
               
-              <View 
-                style={[
-                  styles.messageBubble,
-                  isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
-                ]}
-              >
-                <Text style={[
-                  styles.messageText,
-                  isCurrentUser ? styles.currentUserText : styles.otherUserText
-                ]}>
-                  {item.body}
-                </Text>
-                <Text style={[
-                  styles.timestampText,
-                  isCurrentUser ? styles.currentUserTimestamp : styles.otherUserTimestamp
-                ]}>
-                  {formatTimestamp(item.timestamp)}
-                </Text>
+              <View style={styles.messageContentContainer}>
+                <View 
+                  style={[
+                    styles.messageBubble,
+                    isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
+                  ]}
+                >                  <Text style={[
+                    styles.messageText,
+                    isCurrentUser ? styles.currentUserText : styles.otherUserText
+                  ]}>
+                    {item.body}
+                  </Text>
+                  <View style={styles.messageFooter}>
+                    {item.edited && (
+                      <Text style={[
+                        styles.editedText,
+                        isCurrentUser ? styles.currentUserEdited : styles.otherUserEdited
+                      ]}>
+                        edited
+                      </Text>
+                    )}
+                    <Text style={[
+                      styles.timestampText,
+                      isCurrentUser ? styles.currentUserTimestamp : styles.otherUserTimestamp
+                    ]}>
+                      {formatTimestamp(item.timestamp)}
+                    </Text>
+                  </View>
+                </View>
+                
+                {isCurrentUser && (
+                  <TouchableOpacity 
+                    style={styles.messageMenuButton}
+                    onPress={() => handleMessageOptions(item)}
+                  >
+                    <MaterialCommunityIcons name="dots-vertical" size={20} color="#8E97A9" />
+                  </TouchableOpacity>
+                )}
               </View>
               
               {isCurrentUser && (
-                <View style={styles.avatarContainer}>                  <UserAvatar
+                <View style={styles.avatarContainer}>
+                  <UserAvatar
                     size={36}
                     name={currentUserPseudo}
                     userId={currentUserId}
@@ -261,7 +404,7 @@ export default function Chat(props) {
             </View>
           );
         }}
-        inverted={true} // To show latest messages at the bottom
+        inverted={false} // Changed to false to show oldest messages at the top
       />
       
       <View style={styles.inputContainer}>
@@ -271,7 +414,7 @@ export default function Chat(props) {
         >
           <MaterialCommunityIcons name="emoticon-outline" size={24} color="#7B9CFF" />
         </TouchableOpacity>
-        <TextInput
+        <TextInput          ref={inputRef}
           style={styles.input}
           value={msg}
           onChangeText={(text) => {
@@ -280,7 +423,7 @@ export default function Chat(props) {
             const ref_unediscussion_typing_current = ref_lesdiscussions.child(idDesc);
             ref_unediscussion_typing_current.child(`${currentUserId}_isTyping`).set(text.length > 0);
           }}
-          placeholder="Type a message"
+          placeholder={editingMessage ? "Edit message..." : "Type a message"}
           placeholderTextColor="#8E97A9"
         />
         <TouchableOpacity 
@@ -291,8 +434,7 @@ export default function Chat(props) {
           <MaterialCommunityIcons name="send" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-      
-      {/* Emoji Picker Component */}
+        {/* Emoji Picker Component */}
       <EmojiPicker
         onEmojiSelected={handleEmojiSelect}
         open={isEmojiPickerVisible}
@@ -308,6 +450,38 @@ export default function Chat(props) {
         enableRecentlyUsed
         enableSearchBar
       />
+      
+      {/* Message Options Modal */}
+      <Modal
+        visible={messageMenuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMessageMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setMessageMenuVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={startEditingMessage}
+            >
+              <MaterialCommunityIcons name="pencil" size={22} color="#7B9CFF" />
+              <Text style={styles.modalOptionText}>Edit Message</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalOption, styles.deleteOption]}
+              onPress={deleteMessage}
+            >
+              <MaterialCommunityIcons name="delete" size={22} color="#FF7E87" />
+              <Text style={[styles.modalOptionText, styles.deleteText]}>Delete Message</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -318,6 +492,10 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: '#F8F9FB',
   },
+  messagesContent: {
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
   typingText: {
     fontStyle: 'italic',
     color: '#7B9CFF',
@@ -325,12 +503,41 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     fontSize: 16,
     fontWeight: '600',
-  },  messageRow: {
+  },
+  editingContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(123, 156, 255, 0.12)',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 5,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  editingText: {
+    color: '#7B9CFF',
+    fontWeight: '600',
+    flex: 1,
+  },
+  cancelEditButton: {
+    padding: 5,
+  },
+  messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginVertical: 8,
     paddingHorizontal: 6,
     width: '100%',
+  },
+  messageContentContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    maxWidth: '70%',
+  },
+  messageMenuButton: {
+    marginLeft: 4,
+    padding: 4,
+    alignSelf: 'flex-end',
+    marginBottom: 10,
   },
   currentUserRow: {
     justifyContent: 'flex-end',
@@ -371,18 +578,67 @@ const styles = StyleSheet.create({
   },
   otherUserText: {
     color: '#2E3A59',
-  },  timestampText: {
-    fontSize: 11,
+  },  messageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     marginTop: 6,
+  },
+  editedText: {
+    fontSize: 10,
+    marginRight: 5,
+    fontStyle: 'italic',
+  },
+  currentUserEdited: {
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  otherUserEdited: {
+    color: '#8E97A9',
+  },
+  timestampText: {
+    fontSize: 11,
     fontStyle: 'italic',
   },
   currentUserTimestamp: {
     color: 'rgba(255, 255, 255, 0.8)',
-    alignSelf: 'flex-end',
   },
   otherUserTimestamp: {
     color: '#8E97A9',
-    alignSelf: 'flex-end',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '80%',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#2E3A59',
+    marginLeft: 10,
+  },
+  deleteOption: {
+    borderTopWidth: 1,
+    borderTopColor: '#F0F2F5',
+  },
+  deleteText: {
+    color: '#FF7E87',
   },
   inputContainer: {
     flexDirection: 'row',
